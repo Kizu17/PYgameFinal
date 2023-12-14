@@ -2,9 +2,18 @@ import pygame
 import sys
 import imageio
 import numpy as np
+import pygame.mixer
 
-# Initialize Pygame
+
+# Initialize Pygame Mixer before Pygame
+pygame.mixer.init()
 pygame.init()
+
+# Sounds
+game_over_sound = pygame.mixer.Sound("img/gameOver.wav")
+
+background_music_path = "img/bgm.mp3"
+pygame.mixer.music.load(background_music_path)
 
 # Constants
 WIDTH, HEIGHT = 800, 500
@@ -89,6 +98,9 @@ def draw_instruction_menu():
     frame_index = 0
     clock = pygame.time.Clock()
 
+    # Play background music when entering the instruction menu
+    pygame.mixer.music.play(-1)
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -110,6 +122,7 @@ def draw_instruction_menu():
         if back_button_rect.collidepoint(mouse_x, mouse_y):
             keys = pygame.mouse.get_pressed()
             if keys[0]:  # Check for left mouse button click
+                pygame.mixer.music.stop()  # Stop music when leaving the instruction menu
                 return MENU  # Return to the main menu
 
         pygame.display.flip()
@@ -121,6 +134,9 @@ def draw_instruction_menu():
 def draw_developer_menu():
     frame_index = 0
     clock = pygame.time.Clock()
+
+    # Play background music when entering the developer menu
+    pygame.mixer.music.play(-1)
 
     while True:
         for event in pygame.event.get():
@@ -143,6 +159,7 @@ def draw_developer_menu():
         if back_button_rect.collidepoint(mouse_x, mouse_y):
             keys = pygame.mouse.get_pressed()
             if keys[0]:  # Check for left mouse button click
+                pygame.mixer.music.stop()  # Stop music when leaving the developer menu
                 return MENU  # Return to the main menu
 
         pygame.display.flip()
@@ -153,6 +170,10 @@ def draw_developer_menu():
 
 def draw_menu():
     frame_index = 0
+    
+    # Start playing background music when entering the main menu
+    pygame.mixer.music.play(-1)
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -178,14 +199,17 @@ def draw_menu():
         if button_rect.collidepoint(mouse_x, mouse_y):
             keys = pygame.mouse.get_pressed()
             if keys[0]:
+                pygame.mixer.music.stop()  # Stop music when starting the game
                 return True
         elif instruction_rect.collidepoint(mouse_x, mouse_y):
             keys = pygame.mouse.get_pressed()
             if keys[0]:
+                pygame.mixer.music.stop()  # Stop music when entering the instruction menu
                 return INSTRUCTION
         elif dev_rect.collidepoint(mouse_x, mouse_y):
             keys = pygame.mouse.get_pressed()
             if keys[0]:
+                pygame.mixer.music.stop()  # Stop music when entering the developer menu
                 return DEVELOPER
         elif quit_rect.collidepoint(mouse_x, mouse_y):
             keys = pygame.mouse.get_pressed()
@@ -206,7 +230,18 @@ def reset_positions(player1, player2, puck):
 
 # Function to draw the restart menu
 def draw_restart_menu():
+    global game_over_sound_played
     frame_index = 0
+
+    # Reset the game_over_sound_played variable
+    game_over_sound_played = False
+
+    # Play the game over sound only if not played before
+    if not game_over_sound_played:
+        game_over_sound.play()
+        print("Game Over Sound Played")  # Add this line
+        game_over_sound_played = True
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -220,7 +255,6 @@ def draw_restart_menu():
         screen.blit(resized_image, (190, 10))
         screen.blit(resized_image2, (300, 170))
 
-
         button_rect_menu = draw_rounded_button(WIDTH // 2 - 75, HEIGHT // 2 + 10, 150, 40, 10, BLUE, "Main Menu", WHITE)
 
         button_rect = draw_rounded_button(WIDTH // 2 - 75, HEIGHT // 2 + 65, 150, 40, 10, BLUE, "Restart", WHITE)
@@ -229,7 +263,6 @@ def draw_restart_menu():
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
         # Check for button clicks
-
         if button_rect_menu.collidepoint(mouse_x, mouse_y):
             keys = pygame.mouse.get_pressed()
             if keys[0]:
@@ -248,6 +281,8 @@ def draw_restart_menu():
 
         frame_index = (frame_index + 1) % len(background_gif2)
         clock.tick(FPS_GIF)
+
+
 
 # Function for the game loop
 def game_loop():
@@ -337,6 +372,8 @@ def game_loop():
 
         # Cap the frame rate
         clock.tick(FPS)
+        
+game_over_sound_played = False
 
 # Main game loop
 while True:
@@ -346,9 +383,11 @@ while True:
             sys.exit()
 
     if current_state == MENU:
+        pygame.mixer.music.stop()  # Stop any playing music
         result = draw_menu()
         if result == GAME:
             current_state = GAME
+            pygame.mixer.music.play(-1)  # Play music in a loop
         elif result == INSTRUCTION:
             current_state = INSTRUCTION
         elif result == DEVELOPER:
@@ -358,15 +397,18 @@ while True:
         if result == RESTART_MENU:
             current_state = RESTART_MENU
     elif current_state == RESTART_MENU:
+        pygame.mixer.music.stop()  # Stop any playing music
         result = draw_restart_menu()
         if result == GAME:
             current_state = GAME
+            pygame.mixer.music.play(-1)  # Play music in a loop
         elif result == MENU:
             current_state = MENU  # Reset positions when restarting
     elif current_state == INSTRUCTION:
+        pygame.mixer.music.stop()  # Stop any playing music
         current_state = draw_instruction_menu()
     elif current_state == DEVELOPER:
+        pygame.mixer.music.stop()  # Stop any playing music
         current_state = draw_developer_menu()
-
 
 
